@@ -8,8 +8,8 @@ with a simpler StrictTransportSecurity that doesn't need parsing.
 ```rust
 use actix_files::Files;
 use actix_schemeredirect_middleware::{
-	middleware::{Protocols, SchemeRedirect},
-	strict_transport_security::StrictTransportSecurity,
+	middleware::SchemeRedirect,
+	data::{Protocols, StrictTransportSecurity},
 };
 use actix_web::{App, HttpServer};
 use anyhow::Result;

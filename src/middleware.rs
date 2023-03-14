@@ -1,37 +1,18 @@
-use std::net::SocketAddr;
-use std::rc::Rc;
-
 use actix_utils::future::{ready, Ready};
 use actix_web::{
 	body::EitherBody,
 	dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
-	web::Redirect,
-	Error, HttpResponse, Responder,
+	web, Error, HttpResponse, Responder,
 };
 use futures_core::future::LocalBoxFuture;
-use serde::Deserialize;
+use std::{net::SocketAddr, rc::Rc};
 
-use crate::strict_transport_security::StrictTransportSecurity;
+use crate::data::{Protocols, StrictTransportSecurity};
 
 // There are two steps in middleware processing.
 // 1. Middleware initialization, middleware factory gets called with
 //    next service in chain as parameter.
 // 2. Middleware's call method gets called with normal request.
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum Protocols {
-	IPv4,
-	IPv6,
-	Both,
-	None,
-}
-
-impl Default for Protocols {
-	fn default() -> Self {
-		Protocols::None
-	}
-}
 
 #[derive(Clone, Default)]
 pub struct SchemeRedirect {
@@ -121,12 +102,10 @@ where
 								None
 							}
 						// this is a real IPv6 connexion
+						} else if matches!(self.protocols, Protocols::IPv6 | Protocols::Both) {
+							Some(())
 						} else {
-							if matches!(self.protocols, Protocols::IPv6 | Protocols::Both) {
-								Some(())
-							} else {
-								None
-							}
+							None
 						}
 					}
 					// No ambiguity there
@@ -154,7 +133,7 @@ where
 				drop(conn_info);
 
 				// create redirection response
-				let redirect = Redirect::to(uri);
+				let redirect = web::Redirect::to(uri);
 
 				let mut res = redirect.respond_to(&req).map_into_right_body();
 				apply_hsts(&mut res, hsts);

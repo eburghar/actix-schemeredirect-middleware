@@ -6,6 +6,30 @@ use serde::{Deserialize, Deserializer};
 use std::{convert::Infallible, fmt::Display, time::Duration};
 
 #[derive(Deserialize, Clone)]
+/// https redirection configuration
+pub struct Redirect {
+	/// ssl port
+	pub port: Option<u16>,
+	/// redirect to tls port for ipv4,ipv6 or both protocols
+	pub protocols: Protocols,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Protocols {
+	IPv4,
+	IPv6,
+	Both,
+	None,
+}
+
+impl Default for Protocols {
+	fn default() -> Self {
+		Protocols::None
+	}
+}
+
+#[derive(Deserialize, Clone)]
 /// hsts headers configuration
 pub struct StrictTransportSecurity {
 	/// custom duration in seconds (300s)
